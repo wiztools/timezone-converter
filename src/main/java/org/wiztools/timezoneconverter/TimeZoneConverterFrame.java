@@ -124,6 +124,7 @@ public class TimeZoneConverterFrame extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         pack();
+        setResizable(false);
         setVisible(true);
     }
 
