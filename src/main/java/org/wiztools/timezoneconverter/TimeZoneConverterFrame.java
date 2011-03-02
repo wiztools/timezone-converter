@@ -103,7 +103,7 @@ public class TimeZoneConverterFrame extends JFrame {
     }
 
     public TimeZoneConverterFrame() {
-        super("WizTools.org TimeZone Converter " + Version.VERSION);
+        super("WizTools.org Timezone Converter " + Version.VERSION);
 
         me = this;
         jd_about = new AboutDialog(this);
@@ -202,7 +202,7 @@ public class TimeZoneConverterFrame extends JFrame {
         jcb_outTimeZone.setSelectedItem(pref.getOutTimeZone());
 
         // Add the listeners:
-        jtf_inTime.addPropertyChangeListener(new PropertyChangeListener() {
+        jtf_inTime.addPropertyChangeListener("value", new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 update();
@@ -233,14 +233,14 @@ public class TimeZoneConverterFrame extends JFrame {
             }
 
             {
-                JLabel jl = new JLabel("Source TimeZone: ");
+                JLabel jl = new JLabel("Source Timezone: ");
                 jl.setDisplayedMnemonic('s');
                 jl.setLabelFor(jcb_inTimeZone);
                 jpWest.add(jl);
             }
 
             {
-                JLabel jl = new JLabel("Destination TimeZone: ");
+                JLabel jl = new JLabel("Destination Timezone: ");
                 jl.setDisplayedMnemonic('d');
                 jl.setLabelFor(jcb_outTimeZone);
                 jpWest.add(jl);
