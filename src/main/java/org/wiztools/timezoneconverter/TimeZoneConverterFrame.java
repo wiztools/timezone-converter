@@ -111,6 +111,16 @@ public class TimeZoneConverterFrame extends JFrame {
 
         update();
 
+        // Save to preferences during shutdown:
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run() {
+                // Update preferences:
+                pref.storeInTimeZone((String)jcb_inTimeZone.getSelectedItem());
+                pref.storeOutTimeZone((String)jcb_outTimeZone.getSelectedItem());
+            }
+        });
+
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         pack();
@@ -326,9 +336,5 @@ public class TimeZoneConverterFrame extends JFrame {
         SimpleDateFormat sdf = (SimpleDateFormat) SDF.clone();
         sdf.setTimeZone(destTimezone);
         jtf_outTime.setText(sdf.format(sourceTime.getTime()));
-
-        // Update preferences:
-        pref.storeInTimeZone((String)jcb_inTimeZone.getSelectedItem());
-        pref.storeOutTimeZone((String)jcb_outTimeZone.getSelectedItem());
     }
 }
