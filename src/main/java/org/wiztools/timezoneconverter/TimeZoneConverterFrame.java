@@ -13,14 +13,15 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import static java.util.Calendar.YEAR;
+import static java.util.Calendar.MONTH;
+import static java.util.Calendar.DATE;
 import static java.util.Calendar.HOUR_OF_DAY;
 import static java.util.Calendar.MINUTE;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import java.util.prefs.Preferences;
 import javax.swing.ImageIcon;
@@ -44,8 +45,9 @@ import javax.swing.text.DateFormatter;
  */
 public class TimeZoneConverterFrame extends JFrame {
 
-    private final TimeZoneConverterFrame me;
-    private final DateFormatter dtFormatter = new DateFormatter(new SimpleDateFormat("HH:mm"));
+    private static final String SDF_PATTERN = "yyyy-MM-dd HH:mm";
+    private final SimpleDateFormat SDF = new SimpleDateFormat(SDF_PATTERN);
+    private final DateFormatter dtFormatter = new DateFormatter(SDF);
     private final JFormattedTextField jtf_inTime = new JFormattedTextField(dtFormatter);
 
     final static String[] sortedTimeZones;
@@ -84,17 +86,6 @@ public class TimeZoneConverterFrame extends JFrame {
     }
     private final TimeZonePreference pref = new TimeZonePreference();
 
-    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
-    static {
-        NUMBER_FORMAT.setMinimumIntegerDigits(2);
-        NUMBER_FORMAT.setMaximumIntegerDigits(2);
-    }
-
-    private static String getFormatedTime(final int hour, final int minute) {
-        return NUMBER_FORMAT.format(hour) + ":"
-                + NUMBER_FORMAT.format(minute);
-    }
-
     private static Date getDate(final int hour, final int minute) {
         Calendar cal = Calendar.getInstance();
         cal.set(HOUR_OF_DAY, hour);
@@ -105,7 +96,6 @@ public class TimeZoneConverterFrame extends JFrame {
     public TimeZoneConverterFrame() {
         super("WizTools.org Timezone Converter " + Version.VERSION);
 
-        me = this;
         jd_about = new AboutDialog(this);
 
         this.setIconImage(
@@ -226,7 +216,7 @@ public class TimeZoneConverterFrame extends JFrame {
         { // Labels
             JPanel jpWest = new JPanel(new GridLayout(4, 1));
             {
-                JLabel jl = new JLabel("Enter time (HH:MM): ");
+                JLabel jl = new JLabel("Enter time (" + SDF_PATTERN  + "): ");
                 jl.setDisplayedMnemonic('t');
                 jl.setLabelFor(jtf_inTime);
                 jpWest.add(jl);
@@ -313,23 +303,29 @@ public class TimeZoneConverterFrame extends JFrame {
     }
 
     private void update() {
+        // Get the timezone objects:
+        final TimeZone sourceTimezone = TimeZone.getTimeZone(
+                (String) jcb_inTimeZone.getSelectedItem());
+        final TimeZone destTimezone = TimeZone.getTimeZone(
+                (String) jcb_outTimeZone.getSelectedItem());
+
+        // Get the entered date:
         Date sourceDate = (Date) jtf_inTime.getValue();
+
+        // Compute the source:
         Calendar localTime = Calendar.getInstance();
         localTime.setTime(sourceDate);
-
-        // Source:
-        Calendar sourceTime = new GregorianCalendar(
-                TimeZone.getTimeZone((String) jcb_inTimeZone.getSelectedItem()));
-        sourceTime.set(HOUR_OF_DAY, localTime.get(HOUR_OF_DAY));
-        sourceTime.set(MINUTE, localTime.get(MINUTE));
+        Calendar sourceTime = Calendar.getInstance(sourceTimezone);
+        sourceTime.set(localTime.get(YEAR),
+                localTime.get(MONTH),
+                localTime.get(DATE),
+                localTime.get(HOUR_OF_DAY),
+                localTime.get(MINUTE));
 
         // Destination:
-        Calendar destTime = new GregorianCalendar(
-                TimeZone.getTimeZone((String) jcb_outTimeZone.getSelectedItem()));
-        destTime.setTimeInMillis(sourceTime.getTimeInMillis());
-
-        jtf_outTime.setText(
-                getFormatedTime(destTime.get(HOUR_OF_DAY), destTime.get(MINUTE)));
+        SimpleDateFormat sdf = (SimpleDateFormat) SDF.clone();
+        sdf.setTimeZone(destTimezone);
+        jtf_outTime.setText(sdf.format(sourceTime.getTime()));
 
         // Update preferences:
         pref.storeInTimeZone((String)jcb_inTimeZone.getSelectedItem());
