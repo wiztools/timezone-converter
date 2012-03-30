@@ -30,7 +30,7 @@ class AboutDialog extends JDialog {
         super(parent);
         me = this;
 
-        setTitle("Help>About");
+        setTitle("About | WizTools.org Timezone Converter");
 
         final String text = "This tool is part of the <a href='http://wiztools.org/'>WizTools.org</a> <a href='http://wiztools.googlecode.com/'>Mini-projects</a>."
                 + "<br>"

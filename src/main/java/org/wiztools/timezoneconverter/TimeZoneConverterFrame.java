@@ -1,49 +1,35 @@
 package org.wiztools.timezoneconverter;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import static java.util.Calendar.YEAR;
-import static java.util.Calendar.MONTH;
-import static java.util.Calendar.DATE;
-import static java.util.Calendar.HOUR_OF_DAY;
-import static java.util.Calendar.MINUTE;
+import static java.util.Calendar.*;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.text.DateFormatter;
+import org.simplericity.macify.eawt.Application;
+import org.simplericity.macify.eawt.ApplicationEvent;
+import org.simplericity.macify.eawt.ApplicationListener;
+import org.simplericity.macify.eawt.DefaultApplication;
 
 /**
  *
  * @author subhash
  */
-public class TimeZoneConverterFrame extends JFrame {
+public class TimeZoneConverterFrame extends JFrame implements ApplicationListener {
+    
+    private final Application application = new DefaultApplication();
 
     private static final String SDF_PATTERN = "yyyy-MM-dd HH:mm";
     private final SimpleDateFormat SDF = new SimpleDateFormat(SDF_PATTERN);
@@ -62,6 +48,44 @@ public class TimeZoneConverterFrame extends JFrame {
     private final JTextField jtf_outTime = new JTextField(10);
 
     private final AboutDialog jd_about;
+
+    @Override
+    public void handleAbout(ApplicationEvent ae) {
+        showAboutDialog();
+        ae.setHandled(true);
+    }
+
+    @Override
+    public void handleOpenApplication(ApplicationEvent ae) {
+        setVisible(true);
+        ae.setHandled(true);
+    }
+
+    @Override
+    public void handleOpenFile(ApplicationEvent ae) {
+        JOptionPane.showMessageDialog(this, "Sorry, file-open not supported");
+    }
+
+    @Override
+    public void handlePreferences(ApplicationEvent ae) {
+        JOptionPane.showMessageDialog(this, "No preferences available!");
+    }
+
+    @Override
+    public void handlePrintFile(ApplicationEvent ae) {
+        JOptionPane.showMessageDialog(this, "Sorry, printing not supported");
+    }
+
+    @Override
+    public void handleQuit(ApplicationEvent ae) {
+        quitApp();
+        ae.setHandled(true);
+    }
+
+    @Override
+    public void handleReOpenApplication(ApplicationEvent ae) {
+        setVisible(true);
+    }
 
     private class TimeZonePreference {
         private static final String IN_TIMEZONE = "inTimeZone";
@@ -83,6 +107,15 @@ public class TimeZoneConverterFrame extends JFrame {
         void storeOutTimeZone(String value) {
             prefs.put(OUT_TIMEZONE, value);
         }
+        
+        void flush() {
+            try {
+                prefs.flush();
+            }
+            catch(BackingStoreException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
     private final TimeZonePreference pref = new TimeZonePreference();
 
@@ -95,6 +128,8 @@ public class TimeZoneConverterFrame extends JFrame {
 
     public TimeZoneConverterFrame() {
         super("WizTools.org Timezone Converter " + Version.VERSION);
+        
+        application.addApplicationListener(this);
 
         jd_about = new AboutDialog(this);
 
@@ -118,10 +153,15 @@ public class TimeZoneConverterFrame extends JFrame {
                 // Update preferences:
                 pref.storeInTimeZone((String)jcb_inTimeZone.getSelectedItem());
                 pref.storeOutTimeZone((String)jcb_outTimeZone.getSelectedItem());
+                
+                // Flush latest changes:
+                pref.flush();
             }
         });
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        if(!application.isMac()) {
+            setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        }
         setLocationRelativeTo(null);
         pack();
         setResizable(false);
@@ -131,17 +171,18 @@ public class TimeZoneConverterFrame extends JFrame {
     private void addMenubar() {
         JMenuBar jmb = new JMenuBar();
 
-        { // File menu
+        if(!application.isMac()) { // File menu
             JMenu fileMenu = new JMenu("File");
             fileMenu.setMnemonic('f');
 
             JMenuItem jmiExit = new JMenuItem("Exit");
             jmiExit.setMnemonic('x');
-            jmiExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
+            jmiExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q,
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             jmiExit.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.exit(0);
+                    quitApp();
                 }
             });
             fileMenu.add(jmiExit);
@@ -154,7 +195,8 @@ public class TimeZoneConverterFrame extends JFrame {
 
             JMenuItem jmi = new JMenuItem("Swap source & destination timezones");
             jmi.setMnemonic('s');
-            jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
+            jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             jmi.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -167,7 +209,7 @@ public class TimeZoneConverterFrame extends JFrame {
             jmb.add(jm);
         }
 
-        { // Help menu
+        if(!application.isMac()) { // Help menu
             JMenu jm = new JMenu("Help");
             jm.setMnemonic('h');
 
@@ -176,7 +218,7 @@ public class TimeZoneConverterFrame extends JFrame {
             jmi.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    jd_about.setVisible(true);
+                    showAboutDialog();
                 }
             });
 
@@ -310,6 +352,14 @@ public class TimeZoneConverterFrame extends JFrame {
 
             jpTop.add(jpCenter, BorderLayout.CENTER);
         }
+    }
+    
+    private void showAboutDialog() {
+        jd_about.setVisible(true);
+    }
+    
+    private void quitApp() {
+        System.exit(0);
     }
 
     private void update() {
