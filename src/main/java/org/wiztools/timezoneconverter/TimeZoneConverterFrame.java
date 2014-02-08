@@ -43,8 +43,8 @@ public class TimeZoneConverterFrame extends JFrame implements ApplicationListene
         Arrays.sort(sortedTimeZones, String.CASE_INSENSITIVE_ORDER);
     }
 
-    private final JComboBox jcb_inTimeZone = new JComboBox(sortedTimeZones);
-    private final JComboBox jcb_outTimeZone = new JComboBox(sortedTimeZones);
+    private final JComboBox<String> jcb_inTimeZone = new JComboBox(sortedTimeZones);
+    private final JComboBox<String> jcb_outTimeZone = new JComboBox(sortedTimeZones);
     private final JTextField jtf_outTime = new JTextField(10);
 
     private final AboutDialog jd_about;

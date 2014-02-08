@@ -26,6 +26,7 @@
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
+                    <compilerArgument>-Xlint:unchecked</compilerArgument>
                 </configuration>
             </plugin>
             <plugin>
@@ -41,7 +42,7 @@
                         </manifest>
                         <manifestEntries>
                             <mode>development</mode>
-                            <url>${pom.url}</url>
+                            <url>${project.url}</url>
                         </manifestEntries>
                     </archive>
                 </configuration>
