@@ -4,7 +4,7 @@
     <groupId>org.wiztools</groupId>
     <artifactId>timezone-converter</artifactId>
     <packaging>jar</packaging>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.5.0</version>
     <name>timezone-converter</name>
     <url>https://github.com/wiztools/timezone-converter</url>
     
